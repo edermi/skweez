@@ -38,4 +38,4 @@ changelog:
       - '^docs:'
       - '^test:'
 release:
-  prerelease: true
+  prerelease: false
