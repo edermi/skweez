@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"regexp"
 	"strings"
 	"unicode"
@@ -103,7 +104,7 @@ func init() {
 	rootCmd.Flags().IntP("min-word-length", "m", 3, "Minimum word length")
 	rootCmd.Flags().IntP("max-word-length", "n", 24, "Maximum word length")
 	rootCmd.Flags().StringSlice("scope", []string{}, "Additional site scope, for example subdomains. If not set, only the provided site's domains are in scope")
-	rootCmd.Flags().StringP("output", "o", "", "When set, write an output file to <value>.txt (as well as <value>.json when --json is specified). Empty writes no output to disk")
+	rootCmd.Flags().StringP("output", "o", "", "When set, write an output file to <value>.txt (<value>.json when --json is specified). Empty writes no output to disk")
 	rootCmd.Flags().Bool("no-filter", false, "Do not filter out strings that don't match the regex to check if it looks like a valid word (starts and ends with alphanumeric letter, anything else in between). Also ignores --min-word-length and --max-word-length")
 	rootCmd.Flags().Bool("json", false, "Write words + counts in a json file. Requires --output/-o")
 	rootCmd.Flags().Bool("debug", false, "Enable Debug output")
@@ -129,33 +130,34 @@ func initColly(config *skweezConf) *colly.Collector {
 }
 
 func registerCallbacks(collector *colly.Collector, config *skweezConf, cache *map[string]int) {
+	logger := log.New(os.Stderr, "", log.Ltime)
+
 	collector.OnHTML("a[href]", func(e *colly.HTMLElement) {
 		e.Request.Visit(e.Attr("href"))
 	})
 
 	collector.OnRequest(func(r *colly.Request) {
 		if config.debug {
-			fmt.Println("Visiting", r.URL)
+			logger.Println("Visiting", r.URL)
 		}
 	})
 
 	collector.OnError(func(_ *colly.Response, err error) {
 		if config.debug {
-			log.Println("Something went wrong:", err)
+			logger.Println("Something went wrong:", err)
 		}
 	})
 
 	collector.OnResponse(func(r *colly.Response) {
 		if config.debug {
-			fmt.Println("Visited", r.Request.URL)
+			logger.Println("Visited", r.Request.URL)
 		}
 	})
 
 	collector.OnScraped(func(r *colly.Response) {
 		// https://stackoverflow.com/questions/44441665/how-to-extract-only-text-from-html-in-golang
-		if config.debug {
-			fmt.Println("Finished", r.Request.URL)
-		}
+		logger.Println("Finished", r.Request.URL)
+
 		extractWords(r.Body, config, cache)
 	})
 }
@@ -217,13 +219,23 @@ func outputResults(config *skweezConf, cache map[string]int) {
 		jsonString, err := json.Marshal(cache)
 		handleErr(err, false)
 		if config.output != "" {
-
+			mode := os.O_RDWR | os.O_CREATE
+			filedescriptor, err := os.OpenFile(config.output+".json", mode, 0644)
+			handleErr(err, true)
+			defer filedescriptor.Close()
+			filedescriptor.Write(jsonString)
 		} else {
 			fmt.Println(string(jsonString[:]))
 		}
 	} else {
 		if config.output != "" {
-
+			mode := os.O_RDWR | os.O_CREATE
+			filedescriptor, err := os.OpenFile(config.output+".txt", mode, 0644)
+			handleErr(err, true)
+			defer filedescriptor.Close()
+			for word := range cache {
+				filedescriptor.WriteString(fmt.Sprintf("%s\n", word))
+			}
 		} else {
 			for word := range cache {
 				fmt.Printf("%s\n", word)
