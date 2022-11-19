@@ -40,6 +40,7 @@ type skweezConf struct {
 	noFilter   bool
 	jsonOutput bool
 	targets    []string
+	urlFilter  []*regexp.Regexp
 }
 
 var validWordRegex = regexp.MustCompile(`^[a-zA-Z0-9]+.*[a-zA-Z0-9]$`)
@@ -62,6 +63,8 @@ crawl websites to generate word lists.`,
 		handleErr(err, false)
 		paramScope, err := cmd.LocalFlags().GetStringSlice("scope")
 		handleErr(err, false)
+		paramURLFilter, err := cmd.LocalFlags().GetString("url-filter")
+		handleErr(err, false)
 		paramOutput, err := cmd.LocalFlags().GetString("output")
 		handleErr(err, false)
 		paramNoFilter, err := cmd.LocalFlags().GetBool("no-filter")
@@ -79,13 +82,21 @@ crawl websites to generate word lists.`,
 		for _, element := range args {
 			preparedTargets = append(preparedTargets, toUri(element))
 		}
-
+		if contains(sanitizedScope, "*") {
+			sanitizedScope = []string{}
+		}
+		var preparedFilters []*regexp.Regexp
+		if len(paramURLFilter) > 0 {
+			sanitizedScope = []string{} // so only filter affects
+			preparedFilters = append(preparedFilters, regexp.MustCompile(paramURLFilter))
+		}
 		config := &skweezConf{
 			debug:      paramDebug,
 			depth:      paramDepth,
 			minLen:     paramMinLen,
 			maxLen:     paramMaxLen,
 			scope:      sanitizedScope,
+			urlFilter:  preparedFilters,
 			output:     paramOutput,
 			noFilter:   paramNoFilter,
 			jsonOutput: paramJsonOutput,
@@ -103,8 +114,9 @@ func init() {
 	rootCmd.Flags().IntP("depth", "d", 2, "Depth to spider. 0 = unlimited, 1 = Only provided site, 2... = specific depth")
 	rootCmd.Flags().IntP("min-word-length", "m", 3, "Minimum word length")
 	rootCmd.Flags().IntP("max-word-length", "n", 24, "Maximum word length")
-	rootCmd.Flags().StringSlice("scope", []string{}, "Additional site scope, for example subdomains. If not set, only the provided site's domains are in scope")
+	rootCmd.Flags().StringSlice("scope", []string{}, "Additional site scope, for example subdomains. If not set, only the provided site's domains are in scope. Using * disables scope checks (careful)")
 	rootCmd.Flags().StringP("output", "o", "", "When set, write an output file to <value>.txt (<value>.json when --json is specified). Empty writes no output to disk")
+	rootCmd.Flags().StringP("url-filter", "u", "", "Filter URL by regexp. .ie: \"(.*\\.)?domain\\.com.*\". Setting this will ignore scope")
 	rootCmd.Flags().Bool("no-filter", false, "Do not filter out strings that don't match the regex to check if it looks like a valid word (starts and ends with alphanumeric letter, anything else in between). Also ignores --min-word-length and --max-word-length")
 	rootCmd.Flags().Bool("json", false, "Write words + counts in a json file. Requires --output/-o")
 	rootCmd.Flags().Bool("debug", false, "Enable Debug output")
@@ -120,10 +132,23 @@ func handleErr(err error, critical bool) {
 	}
 }
 
+// https://play.golang.org/p/Qg_uv_inCek
+// contains checks if a string is present in a slice
+func contains(s []string, str string) bool {
+	for _, v := range s {
+		if v == str {
+			return true
+		}
+	}
+
+	return false
+}
+
 func initColly(config *skweezConf) *colly.Collector {
 	c := colly.NewCollector(
 		colly.MaxDepth(config.depth),
 		colly.AllowedDomains(config.scope...),
+		colly.URLFilters(config.urlFilter...),
 	)
 	c.AllowURLRevisit = false
 	return c
