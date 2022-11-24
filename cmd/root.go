@@ -115,7 +115,7 @@ func init() {
 	rootCmd.Flags().IntP("min-word-length", "m", 3, "Minimum word length")
 	rootCmd.Flags().IntP("max-word-length", "n", 24, "Maximum word length")
 	rootCmd.Flags().StringSlice("scope", []string{}, "Additional site scope, for example subdomains. If not set, only the provided site's domains are in scope. Using * disables scope checks (careful)")
-	rootCmd.Flags().StringP("output", "o", "", "When set, write an output file to <value>.txt (<value>.json when --json is specified). Empty writes no output to disk")
+	rootCmd.Flags().StringP("output", "o", "", "When set, write an output file")
 	rootCmd.Flags().StringP("url-filter", "u", "", "Filter URL by regexp. .ie: \"(.*\\.)?domain\\.com.*\". Setting this will ignore scope")
 	rootCmd.Flags().Bool("no-filter", false, "Do not filter out strings that don't match the regex to check if it looks like a valid word (starts and ends with alphanumeric letter, anything else in between). Also ignores --min-word-length and --max-word-length")
 	rootCmd.Flags().Bool("json", false, "Write words + counts in a json file. Requires --output/-o")
@@ -245,7 +245,7 @@ func outputResults(config *skweezConf, cache map[string]int) {
 		handleErr(err, false)
 		if config.output != "" {
 			mode := os.O_RDWR | os.O_CREATE
-			filedescriptor, err := os.OpenFile(config.output+".json", mode, 0644)
+			filedescriptor, err := os.OpenFile(config.output, mode, 0644)
 			handleErr(err, true)
 			defer filedescriptor.Close()
 			filedescriptor.Write(jsonString)
@@ -255,7 +255,7 @@ func outputResults(config *skweezConf, cache map[string]int) {
 	} else {
 		if config.output != "" {
 			mode := os.O_RDWR | os.O_CREATE
-			filedescriptor, err := os.OpenFile(config.output+".txt", mode, 0644)
+			filedescriptor, err := os.OpenFile(config.output, mode, 0644)
 			handleErr(err, true)
 			defer filedescriptor.Close()
 			for word := range cache {
