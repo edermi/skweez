@@ -53,6 +53,7 @@ var rootCmd = &cobra.Command{
 crawl websites to generate word lists.`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		// fetch cmd args
 		paramDebug, err := cmd.LocalFlags().GetBool("debug")
 		handleErr(err, false)
 		paramDepth, err := cmd.LocalFlags().GetInt("depth")
@@ -71,6 +72,7 @@ crawl websites to generate word lists.`,
 		handleErr(err, false)
 		paramJsonOutput, err := cmd.LocalFlags().GetBool("json")
 		handleErr(err, false)
+		// sanitize scope param
 		sanitizedScope := []string{}
 		for _, element := range paramScope {
 			sanitizedScope = append(sanitizedScope, extractDomain(element))
@@ -78,17 +80,20 @@ crawl websites to generate word lists.`,
 		for _, element := range args {
 			sanitizedScope = append(sanitizedScope, extractDomain(element))
 		}
+		if contains(sanitizedScope, "*") {
+			// empty string slice as scope -> "unlimited scope"
+			sanitizedScope = []string{}
+		}
+		// process regex filters if any specified
+		var preparedFilters []*regexp.Regexp
+		if (paramURLFilter != "") && (strings.Trim(" ", paramURLFilter) != "") {
+			sanitizedScope = []string{} // remove scope limits, so only the filter is applied
+			preparedFilters = append(preparedFilters, regexp.MustCompile(paramURLFilter))
+		}
+		// collect targets from unnamed args
 		preparedTargets := []string{}
 		for _, element := range args {
 			preparedTargets = append(preparedTargets, toUri(element))
-		}
-		if contains(sanitizedScope, "*") {
-			sanitizedScope = []string{}
-		}
-		var preparedFilters []*regexp.Regexp
-		if len(paramURLFilter) > 0 {
-			sanitizedScope = []string{} // so only filter affects
-			preparedFilters = append(preparedFilters, regexp.MustCompile(paramURLFilter))
 		}
 		config := &skweezConf{
 			debug:      paramDebug,
