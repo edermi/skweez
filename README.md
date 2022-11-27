@@ -33,8 +33,9 @@ Flags:
   -n, --max-word-length int   Maximum word length (default 24)
   -m, --min-word-length int   Minimum word length (default 3)
       --no-filter             Do not filter out strings that don't match the regex to check if it looks like a valid word (starts and ends with alphanumeric letter, anything else in between). Also ignores --min-word-length and --max-word-length
-  -o, --output string         When set, write an output file to <value>.txt (<value>.json when --json is specified). Empty writes no output to disk
-      --scope strings         Additional site scope, for example subdomains. If not set, only the provided site's domains are in scope
+  -o, --output string         When set, write an output file
+      --scope strings         Additional site scope, for example subdomains. If not set, only the provided site's domains are in scope. Using * disables scope checks (careful)
+  -u, --url-filter string     Filter URL by regexp. .ie: "(.*\.)?domain\.com.*". Setting this will ignore scope
 ~~~
 
 `skweez` takes an arbitrary number of links and crawls them, extracting the words.
