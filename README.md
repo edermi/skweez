@@ -13,7 +13,7 @@ You may use binary releases from the release section for your favorite operating
 
 ### Build from source
 
-Assuming you have Go 1.16+ installed and working, just clone the repo and do a `go build` or use `go get github.com/edermi/skweez`.
+Assuming you have Go 1.18+ (probably works on older versions too) installed and working, just clone the repo and do a `go build` or use `go get github.com/edermi/skweez`.
 
 ## Usage
 
@@ -103,6 +103,12 @@ These are just ideas, I don't have plans of implementing them now since I usuall
 - Features CeWL provides (E-Mail filtering, proxy auth, custom headers, custom user agent)
 - Better performance
 - More control over what's getting scraped
+
+## Contributors
+
+The following people have contributed to the project. Thank you very much!
+
+- [p34rpr3sh4](https://github.com/p34rpr3sh4) implemented wildcard scoping and regex-based filtering of target urls
 
 ## License
 
