@@ -41,6 +41,7 @@ type skweezConf struct {
 	jsonOutput bool
 	targets    []string
 	urlFilter  []*regexp.Regexp
+	onlyASCII  bool
 }
 
 var validWordRegex = regexp.MustCompile(`^[a-zA-Z0-9]+.*[a-zA-Z0-9]$`)
@@ -71,6 +72,8 @@ crawl websites to generate word lists.`,
 		paramNoFilter, err := cmd.LocalFlags().GetBool("no-filter")
 		handleErr(err, false)
 		paramJsonOutput, err := cmd.LocalFlags().GetBool("json")
+		handleErr(err, false)
+		paramOnlyASCII, err := cmd.LocalFlags().GetBool("onlyascii")
 		handleErr(err, false)
 		// sanitize scope param
 		sanitizedScope := []string{}
@@ -106,6 +109,7 @@ crawl websites to generate word lists.`,
 			noFilter:   paramNoFilter,
 			jsonOutput: paramJsonOutput,
 			targets:    preparedTargets,
+			onlyASCII:  paramOnlyASCII,
 		}
 		run(config)
 	},
@@ -125,6 +129,7 @@ func init() {
 	rootCmd.Flags().Bool("no-filter", false, "Do not filter out strings that don't match the regex to check if it looks like a valid word (starts and ends with alphanumeric letter, anything else in between). Also ignores --min-word-length and --max-word-length")
 	rootCmd.Flags().Bool("json", false, "Write words + counts in a json file. Requires --output/-o")
 	rootCmd.Flags().Bool("debug", false, "Enable Debug output")
+	rootCmd.Flags().Bool("onlyascii", false, "When set, filter out non ASCII words")
 }
 
 func handleErr(err error, critical bool) {
@@ -218,8 +223,12 @@ outer:
 						filteredWords = append(filteredWords, candidate)
 					} else {
 						if validWordRegex.MatchString(candidate) {
-							if len(candidate) > config.minLen && len(candidate) < config.maxLen && allPrintable(word) {
-								filteredWords = append(filteredWords, candidate)
+							if len(candidate) > config.minLen && len(candidate) < config.maxLen {
+								if config.onlyASCII && isASCII(word) {
+									filteredWords = append(filteredWords, candidate)
+								} else if !config.onlyASCII && allPrintable(word) {
+									filteredWords = append(filteredWords, candidate)
+								}
 							}
 						}
 					}
@@ -296,6 +305,14 @@ func toUri(domain string) string {
 func allPrintable(word string) bool {
 	for _, rune := range word {
 		if !unicode.IsPrint(rune) {
+			return false
+		}
+	}
+	return true
+}
+func isASCII(word string) bool {
+	for i := 0; i < len(word); i++ {
+		if word[i] > unicode.MaxASCII {
 			return false
 		}
 	}
