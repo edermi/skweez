@@ -192,6 +192,10 @@ func registerCallbacks(collector *colly.Collector, config *skweezConf, cache *ma
 	})
 }
 
+func Split(r rune) bool {
+	return r == ' ' || r == '\n' || r == '\r'
+}
+
 // cache should be a param, too. Allows for better testability
 func extractWords(body []byte, config *skweezConf, cache *map[string]int) {
 	domDoc := html.NewTokenizer(strings.NewReader(string(body)))
@@ -210,7 +214,7 @@ outer:
 			}
 			TxtContent := strings.TrimSpace(html.UnescapeString(string(domDoc.Text())))
 			if len(TxtContent) > 0 {
-				unfilteredWords := strings.Split(TxtContent, " ")
+				unfilteredWords := strings.FieldsFunc(TxtContent, Split)
 				var filteredWords []string
 				for _, word := range unfilteredWords {
 					candidate := strings.Trim(word, stripTrailingSymbols)
