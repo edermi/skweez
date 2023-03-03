@@ -176,7 +176,8 @@ func registerCallbacks(collector *colly.Collector, config *skweezConf, cache *ma
 			for _, header := range config.header {
 				var headerSplit = strings.SplitN(header, ":", 2)
 				if len(headerSplit) > 1 {
-					r.Headers.Set(headerSplit[0], headerSplit[1])
+					// header needs to be trimmed otherwise colly wont send request
+					r.Headers.Set(strings.TrimSpace(headerSplit[0]), headerSplit[1])
 				}
 			}
 		}
