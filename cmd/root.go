@@ -41,6 +41,7 @@ type skweezConf struct {
 	jsonOutput bool
 	targets    []string
 	urlFilter  []*regexp.Regexp
+	userAgent  string
 }
 
 var validWordRegex = regexp.MustCompile(`^[a-zA-Z0-9]+.*[a-zA-Z0-9]$`)
@@ -71,6 +72,8 @@ crawl websites to generate word lists.`,
 		paramNoFilter, err := cmd.LocalFlags().GetBool("no-filter")
 		handleErr(err, false)
 		paramJsonOutput, err := cmd.LocalFlags().GetBool("json")
+		handleErr(err, false)
+		paramUserAgent, err := cmd.LocalFlags().GetString("user-agent")
 		handleErr(err, false)
 		// sanitize scope param
 		sanitizedScope := []string{}
@@ -106,6 +109,7 @@ crawl websites to generate word lists.`,
 			noFilter:   paramNoFilter,
 			jsonOutput: paramJsonOutput,
 			targets:    preparedTargets,
+			userAgent:  paramUserAgent,
 		}
 		run(config)
 	},
@@ -125,6 +129,7 @@ func init() {
 	rootCmd.Flags().Bool("no-filter", false, "Do not filter out strings that don't match the regex to check if it looks like a valid word (starts and ends with alphanumeric letter, anything else in between). Also ignores --min-word-length and --max-word-length")
 	rootCmd.Flags().Bool("json", false, "Write words + counts in a json file. Requires --output/-o")
 	rootCmd.Flags().Bool("debug", false, "Enable Debug output")
+	rootCmd.Flags().StringP("user-agent", "a", "", "Set custom user-agent")
 }
 
 func handleErr(err error, critical bool) {
@@ -155,6 +160,9 @@ func initColly(config *skweezConf) *colly.Collector {
 		colly.AllowedDomains(config.scope...),
 		colly.URLFilters(config.urlFilter...),
 	)
+	if config.userAgent != "" {
+		c.UserAgent = config.userAgent
+	}
 	c.AllowURLRevisit = false
 	return c
 }
