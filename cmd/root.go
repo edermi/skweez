@@ -42,6 +42,8 @@ type skweezConf struct {
 	targets    []string
 	urlFilter  []*regexp.Regexp
 	onlyASCII  bool
+	userAgent  string
+  header     []string
 }
 
 var validWordRegex = regexp.MustCompile(`^[a-zA-Z0-9]+.*[a-zA-Z0-9]$`)
@@ -75,6 +77,11 @@ crawl websites to generate word lists.`,
 		handleErr(err, false)
 		paramOnlyASCII, err := cmd.LocalFlags().GetBool("onlyascii")
 		handleErr(err, false)
+		paramUserAgent, err := cmd.LocalFlags().GetString("user-agent")
+		handleErr(err, false)
+    paramHeader, err := cmd.LocalFlags().GetStringSlice("header")
+    handleErr(err, false)
+
 		// sanitize scope param
 		sanitizedScope := []string{}
 		for _, element := range paramScope {
@@ -110,6 +117,8 @@ crawl websites to generate word lists.`,
 			jsonOutput: paramJsonOutput,
 			targets:    preparedTargets,
 			onlyASCII:  paramOnlyASCII,
+      userAgent:  paramUserAgent,
+			header:     paramHeader,
 		}
 		run(config)
 	},
@@ -130,6 +139,8 @@ func init() {
 	rootCmd.Flags().Bool("json", false, "Write words + counts in a json file. Requires --output/-o")
 	rootCmd.Flags().Bool("debug", false, "Enable Debug output")
 	rootCmd.Flags().Bool("onlyascii", false, "When set, filter out non ASCII words")
+  rootCmd.Flags().StringP("user-agent", "a", "", "Set custom user-agent")
+	rootCmd.Flags().StringSlice("header", []string{}, "Additional header")
 }
 
 func handleErr(err error, critical bool) {
@@ -160,6 +171,9 @@ func initColly(config *skweezConf) *colly.Collector {
 		colly.AllowedDomains(config.scope...),
 		colly.URLFilters(config.urlFilter...),
 	)
+	if config.userAgent != "" {
+		c.UserAgent = config.userAgent
+	}
 	c.AllowURLRevisit = false
 	return c
 }
@@ -172,6 +186,15 @@ func registerCallbacks(collector *colly.Collector, config *skweezConf, cache *ma
 	})
 
 	collector.OnRequest(func(r *colly.Request) {
+		if len(config.header) > 0 {
+			for _, header := range config.header {
+				var headerSplit = strings.SplitN(header, ":", 2)
+				if len(headerSplit) > 1 {
+					// header needs to be trimmed otherwise colly wont send request
+					r.Headers.Set(strings.TrimSpace(headerSplit[0]), headerSplit[1])
+				}
+			}
+		}
 		if config.debug {
 			logger.Println("Visiting", r.URL)
 		}
