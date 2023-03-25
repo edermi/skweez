@@ -115,6 +115,7 @@ crawl websites to generate word lists.`,
 			noFilter:   paramNoFilter,
 			jsonOutput: paramJsonOutput,
 			targets:    preparedTargets,
+			onlyASCII:  paramOnlyASCII,
 			userAgent:  paramUserAgent,
 			headers:    paramHeaders,
 		}
@@ -248,12 +249,11 @@ outer:
 						filteredWords = append(filteredWords, candidate)
 					} else {
 						if validWordRegex.MatchString(candidate) {
-							if len(candidate) > config.minLen && len(candidate) < config.maxLen {
-								if config.onlyASCII && isASCII(word) {
-									filteredWords = append(filteredWords, candidate)
-								} else if !config.onlyASCII && allPrintable(word) {
-									filteredWords = append(filteredWords, candidate)
+							if len(candidate) > config.minLen && len(candidate) < config.maxLen && allPrintable(word) {
+								if config.onlyASCII && !isASCII(word) {
+									continue
 								}
+								filteredWords = append(filteredWords, candidate)
 							}
 						}
 					}
