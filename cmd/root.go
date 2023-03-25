@@ -27,6 +27,7 @@ import (
 
 	"github.com/gocolly/colly"
 	"github.com/spf13/cobra"
+	"golang.org/x/exp/utf8string"
 	"golang.org/x/net/html"
 )
 
@@ -250,8 +251,11 @@ outer:
 					} else {
 						if validWordRegex.MatchString(candidate) {
 							if len(candidate) > config.minLen && len(candidate) < config.maxLen && allPrintable(word) {
-								if config.onlyASCII && !isASCII(word) {
-									continue
+								if config.onlyASCII {
+									candidate := utf8string.NewString(word)
+									if !candidate.IsASCII() {
+										continue
+									}
 								}
 								filteredWords = append(filteredWords, candidate)
 							}
@@ -330,14 +334,6 @@ func toUri(domain string) string {
 func allPrintable(word string) bool {
 	for _, rune := range word {
 		if !unicode.IsPrint(rune) {
-			return false
-		}
-	}
-	return true
-}
-func isASCII(word string) bool {
-	for i := 0; i < len(word); i++ {
-		if word[i] > unicode.MaxASCII {
 			return false
 		}
 	}
