@@ -26,16 +26,19 @@ Usage:
   skweez domain1 domain2 domain3 [flags]
 
 Flags:
-      --debug                 Enable Debug output
-  -d, --depth int             Depth to spider. 0 = unlimited, 1 = Only provided site, 2... = specific depth (default 2)
-  -h, --help                  help for skweez
-      --json                  Write words + counts in a json file. Requires --output/-o
-  -n, --max-word-length int   Maximum word length (default 24)
-  -m, --min-word-length int   Minimum word length (default 3)
-      --no-filter             Do not filter out strings that don't match the regex to check if it looks like a valid word (starts and ends with alphanumeric letter, anything else in between). Also ignores --min-word-length and --max-word-length
-  -o, --output string         When set, write an output file
-      --scope strings         Additional site scope, for example subdomains. If not set, only the provided site's domains are in scope. Using * disables scope checks (careful)
-  -u, --url-filter string     Filter URL by regexp. .ie: "(.*\.)?domain\.com.*". Setting this will ignore scope
+      --debug                     Enable Debug output
+  -d, --depth int                 Depth to spider. 0 = unlimited, 1 = Only provided site, 2... = specific depth (default 2)
+  -h, --help                      help for skweez
+      --json                      Write words + counts in a json file. Requires --output/-o
+  -n, --max-word-length int       Maximum word length (default 24)
+  -m, --min-word-length int       Minimum word length (default 3)
+      --no-filter                 Do not filter out strings that don't match the regex to check if it looks like a valid word (starts and ends with alphanumeric letter, anything else in between). Also ignores --min-word-length and --max-word-length
+      --onlyascii                 When set, filter out non ASCII words
+  -o, --output string             When set, write an output file
+      --scope strings             Additional site scope, for example subdomains. If not set, only the provided site's domains are in scope. Using * disables scope checks (careful)
+  -u, --url-filter string         Filter URL by regexp. .ie: "(.*\.)?domain\.com.*". Setting this will ignore scope
+  -a, --user-agent string         Set custom user-agent
+      --with-header stringArray   Add a header in the format key:value. May be used multiple times to add more headers, for example --with-header 'foo: abc' --with-header 'bar: xyz' to set the headers foo and bar to their appropriate values
 ~~~
 
 `skweez` takes an arbitrary number of links and crawls them, extracting the words.
@@ -92,6 +95,7 @@ I recommend `jq` for working with JSON.
 In order to improve result quality, `skweez` has a builtin regex to filter out strings that do not look like words.
 `--no-filter` disables this behavior.
 `skweez` only selects words in length between 3 and 24 - you can override this behavior with `--min-word-length` and `--max-word-length`.
+The `--onlyascii` flags filters all words that contain non-ASCII characters.
 
 ## Bugs, Feature requests
 
@@ -101,7 +105,7 @@ Just file a new issue or, even better, submit a PR and I will have a look.
 
 These are just ideas, I don't have plans of implementing them now since I usually don't need them.
 
-- Features CeWL provides (E-Mail filtering, proxy auth, custom headers, custom user agent)
+- Features CeWL provides (E-Mail filtering, proxy auth)
 - Better performance
 - More control over what's getting scraped
 
@@ -110,6 +114,7 @@ These are just ideas, I don't have plans of implementing them now since I usuall
 The following people have contributed to the project. Thank you very much!
 
 - [p34rpr3sh4](https://github.com/p34rpr3sh4) implemented wildcard scoping and regex-based filtering of target urls
+- [braunearded](https://github.com/braunbearded) implemented custom headers, the user agent flag, the `--onlyascii` filter and improved the handling of different runes representing a space character
 
 ## License
 
