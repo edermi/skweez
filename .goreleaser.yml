@@ -17,33 +17,10 @@ archives:
   - id: default
     format: zip
     wrap_in_directory: false
-    format_overrides:
-      - goos: darwin
-        goarch: amd64
-        format: zip
-        replace: Darwin_x86_64
-      - goos: darwin
-        goarch: arm64
-        format: zip
-        replace: Darwin_arm64
-      - goos: linux
-        goarch: amd64
-        format: zip
-        replace: Linux_x86_64
-      - goos: linux
-        goarch: arm64
-        format: zip
-        replace: Linux_arm64
-      - goos: windows
-        goarch: amd64
-        format: zip
-        replace: Windows_x86_64
-      - goos: windows
-        goarch: arm64
-        format: zip
-        replace: Windows_arm64
     files:
       - skweez*
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+
 
 
 checksum:
