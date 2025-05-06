@@ -29,9 +29,3 @@ jobs:
         env:
           GORELEASER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-changelog:
-  sort: asc
-  filters:
-    exclude:
-      - '^docs:'
-      - '^test:'
