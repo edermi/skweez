@@ -1,0 +1,20 @@
+# Commit message template using Conventional Commits
+# Format: <type>(<optional scope>): <description>
+#
+# Examples:
+#   feat: add login endpoint
+#   fix(auth): reject expired JWTs
+#   chore(deps): bump goreleaser to v1.20.0
+#   docs(readme): add usage examples
+#   refactor(parser): simplify error handling
+#   test(config): add unit test for invalid input
+#
+# Allowed types:
+#   feat     – new feature
+#   fix      – bug fix
+#   docs     – documentation change
+#   style    – code style (formatting, etc.)
+#   refactor – refactor (not adding features or fixing bugs)
+#   perf     – performance improvement
+#   test     – adding or updating tests
+#   chore    – maintenance (e.g. build scripts, tooling)
