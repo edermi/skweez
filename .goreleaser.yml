@@ -1,6 +1,7 @@
 before:
   hooks:
     - go mod tidy
+
 builds:
   - env:
       - CGO_ENABLED=0
@@ -9,33 +10,33 @@ builds:
       - windows
       - darwin
     goarch:
-      - arm
-      - arm64
       - amd64
-      - 386
-    goarm:
-      - 6
-      - 7
+      - arm64
+
 archives:
   - id: default
     format: zip
     replacements:
-       darwin: Darwin
-       linux: Linux
-       windows: Windows
-       386: i386
-       amd64: x86_64
+      darwin: Darwin
+      linux: Linux
+      windows: Windows
+      amd64: x86_64
+      arm64: arm64
     files:
       - skweez*
+
 checksum:
   name_template: 'checksums.txt'
+
 snapshot:
   name_template: "{{ .Tag }}-next"
+
 changelog:
   sort: asc
   filters:
     exclude:
       - '^docs:'
       - '^test:'
+
 release:
   prerelease: false
