@@ -199,10 +199,14 @@ func registerCallbacks(collector *colly.Collector, config *skweezConf, cache *ma
 			logger.Println("Visiting", r.URL)
 		}
 	})
-
-	collector.OnError(func(_ *colly.Response, err error) {
+	collector.OnError(func(r *colly.Response, err error) {
 		if config.debug {
-			logger.Println("Something went wrong:", err)
+			logger.Printf("Error: %v\n", err)
+			if r != nil {
+				logger.Printf("Request URL: %s\n", r.Request.URL)
+				logger.Printf("Response Status Code: %d\n", r.StatusCode)
+				logger.Printf("Response Body: %s\n", string(r.Body))
+			}
 		}
 	})
 
